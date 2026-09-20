@@ -37,13 +37,23 @@ The implemented repository currently contains:
 ```text
 langchain-patterns/
 ├── src/lc_patterns/
+│   ├── __init__.py
 │   ├── config/
+│   │   └── __init__.py
 │   ├── models/
+│   │   ├── __init__.py
 │   │   └── chat.py
 │   └── py.typed
 ├── exercises/
-│   └── 01_models/
+│   ├── 01_models/
+│   │   ├── basic_invocation.py
+│   │   ├── message_interaction.py
+│   │   └── model_comparison.py
+│   └── 02-chat-models/
+│       ├── 01_multi_turn.py
+│       └── 02_parameters.py
 ├── tests/
+│   ├── __init__.py
 │   └── test_chat.py
 ├── .github/
 │   └── workflows/
@@ -195,21 +205,38 @@ Both use region `us-east-1` and return `ChatBedrockConverse` instances. Model co
 
 The current Chapter 1 implementation is in `exercises/01_models/`:
 
-### `basic_invocation.py`
-
-Uses Nova 2 Lite to demonstrate model construction through the reusable model layer, `invoke()`, and reading generated text from `response.content`.
-
-### `message_interaction.py`
-
-Uses Nova Pro to demonstrate `SystemMessage`, `HumanMessage`, and invoking a model with structured messages.
-
-### `model_comparison.py`
-
-Creates Nova 2 Lite and Nova Pro through the centralized model layer, invokes both, and measures response time.
+| Concept | Exercise | Provider | Implementation |
+| --- | --- | --- | --- |
+| Models | `basic_invocation.py` | Amazon Bedrock | Invokes Nova 2 Lite through the reusable model layer. |
+| Prompts and messages | `message_interaction.py` | Amazon Bedrock | Uses `SystemMessage` and `HumanMessage` to control response context and style. |
+| Model comparison | `model_comparison.py` | Amazon Bedrock | Compares Nova 2 Lite and Nova Pro response times and output. |
 
 These are live Bedrock exercises. They are not executed by CI.
 
-## Chapter 1 Testing
+## Chapter 2: Chat Models
+
+The implemented concepts in `exercises/02-chat-models/` are:
+
+| Concept | Exercise | Implementation |
+| --- | --- | --- |
+| Multi-turn conversation | `01_multi_turn.py` | Maintains message history across three model responses. |
+| Streaming | `01_multi_turn.py` | Streams the third response and handles string or list-based Bedrock content chunks. |
+| Retry handling | `01_multi_turn.py` | Retries model execution up to three times with `with_retry()`. |
+| Error handling | `01_multi_turn.py` | Reports general failures and identifies rate-limit and authentication errors. |
+| Parameters | `02_parameters.py` | Compares supported Nova 2 Lite temperature values. |
+| Token tracking | `02_parameters.py` | Reports input, output, and total tokens from response metadata. |
+
+The implementations use the centralized Bedrock model layer in `src/lc_patterns/models/chat.py`.
+
+### `01_multi_turn.py`
+
+Demonstrates a three-turn Databricks MLOps conversation using message history, streaming for the final response, retry handling, and concise error handling for rate-limit and authentication failures. The streaming loop handles Bedrock chunks whose `content` is either a string or a list of content blocks.
+
+### `02_parameters.py`
+
+Compares supported Nova 2 Lite temperature values, invokes each configuration twice, and reports input, output, and total token usage from LangChain response metadata.
+
+## Testing
 
 [tests/test_chat.py](tests/test_chat.py) validates model construction without invoking Bedrock. The tests verify the `ChatBedrockConverse` type, both model IDs, and the `us-east-1` region. They require no AWS credentials.
 
@@ -276,7 +303,7 @@ Ruff
 pytest
 ```
 
-The workflow uses `actions/checkout@v4`, `actions/setup-python@v5`, and `astral-sh/setup-uv@v6`. CI does not authenticate to AWS, call Bedrock, or run the live exercises. Tests remain independent of AWS credentials, keeping CI inexpensive and deterministic. The current CI run passed.
+The workflow uses `actions/checkout@v4`, `actions/setup-python@v5`, and `astral-sh/setup-uv@v6`. CI does not authenticate to AWS, call Bedrock, or run the live exercises. Tests remain independent of AWS credentials, keeping CI inexpensive and deterministic.
 
 Inspect results through:
 
@@ -294,10 +321,11 @@ GitHub repository → Actions → CI → workflow run → quality job
 | Bedrock | Complete |
 | Reusable chat model layer | Complete |
 | Chapter 1 | Complete |
-| Chapter 1 tests | Complete |
+| Model configuration tests | Complete |
+| Chapter 2 chat models | Complete |
 | Ruff | Complete |
 | GitHub Actions CI | Complete |
-| Next | Chapter 2 |
+| Next | Chapter 3 |
 
 ## Development Workflow
 
@@ -317,7 +345,7 @@ GitHub repository → Actions → CI → workflow run → quality job
 
 ## Next
 
-Chapter 1, Models, is complete. The next module will be added when its implementation requirements are defined. Deployment is intentionally deferred.
+Chapters 1 and 2 are complete. The next module will be added when its implementation requirements are defined. Deployment is intentionally deferred.
 
 ## Revisit Notes
 
