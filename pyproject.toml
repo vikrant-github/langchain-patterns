@@ -1,0 +1,25 @@
+[project]
+name = "lc-patterns"
+version = "0.1.0"
+description = "Engineering-focused LangChain patterns, implementations, and experiments using Amazon Bedrock, built for hands-on learning, certification prep, and practical reference."
+readme = "README.md"
+authors = [
+    { name = "Vikrant.", email = "vikrant.colab@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "botocore[crt]>=1.43.98",
+    "langchain>=1.4.2",
+    "langchain-aws>=1.7.8",
+    "pydantic>=2.13.5",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.17,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.8",
+]
