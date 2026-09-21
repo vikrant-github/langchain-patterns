@@ -302,7 +302,11 @@ The chapter connects three layers of the LangChain API:
 | Templates | `ChatPromptTemplate`, `PromptTemplate`, `FewShotChatMessagePromptTemplate`, and template composition | RAG systems |
 | Structured output | Pydantic `BaseModel`, field descriptions, `with_structured_output`, and nested schemas | Data extraction |
 
-Examples for these concepts will be added under `exercises/` as the chapter is implemented.
+The corresponding implementations are in `exercises/03-prompts-messages-outputs/` and the reusable prompt/schema layer is in `src/lc_patterns/prompts/templates.py` and `src/lc_patterns/schemas/structured_outputs.py`.
+
+## Chapter 4: Function Calling and Tool Execution
+
+Chapter 4 is currently in progress. The repository contains the beginning of the tool-calling work in `exercises/04-function-calling-tools/` and the reusable tool implementations in `src/lc_patterns/tools/`, with the focus on the boundary between tool definition and model binding.
 
 ## Testing
 
@@ -433,6 +437,7 @@ GitHub repository → Actions → CI → workflow run → quality job
 | Model configuration tests | Complete |
 | Chapter 2 chat models | Complete |
 | Chapter 3 prompts and structured output | Complete |
+| Chapter 4 function calling and tool execution | In progress |
 | Ruff | Complete |
 | GitHub Actions CI | Complete |
 | Next | Higher-order LangChain orchestration and reuse patterns |
@@ -455,7 +460,7 @@ GitHub repository → Actions → CI → workflow run → quality job
 
 ## Next
 
-The core Bedrock, prompt, and structured-output workflow is in place. The next work focuses on higher-order orchestration, reuse, and pattern extraction as the project matures. Deployment remains intentionally deferred.
+The core Bedrock, prompt, and structured-output workflow is in place, and Chapter 3 is complete. Chapter 4 is currently in progress and focuses on the tool layer, tool binding, and the explicit execution boundary between model selection and Python execution. Deployment remains intentionally deferred.
 
 ## Revisit Notes
 
