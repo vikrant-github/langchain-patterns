@@ -308,6 +308,18 @@ The corresponding implementations are in `exercises/03-prompts-messages-outputs/
 
 Chapter 4 is currently in progress. The repository contains the beginning of the tool-calling work in `exercises/04-function-calling-tools/` and the reusable tool implementations in `src/lc_patterns/tools/`, with the focus on the boundary between tool definition and model binding.
 
+### Manual ReAct loop
+
+The repository also includes a manual ReAct-style agent exercise in `exercises/05-agents/02_manual_react.py`. It demonstrates:
+
+- model/tool binding for a tool-calling loop
+- explicit tool execution by application code
+- observation collection and conversation history updates
+- exception handling around model and tool failures
+- token usage reporting from `usage_metadata`
+
+This keeps the exercise readable and grounded in the underlying LangChain pattern: the model decides when a tool is needed, and the application executes it and feeds the result back into the conversation.
+
 ## Testing
 
 The repository keeps tests focused on deterministic, local Python behavior. We do not add tests that call Bedrock or any other external LLM service.
@@ -438,6 +450,7 @@ GitHub repository → Actions → CI → workflow run → quality job
 | Chapter 2 chat models | Complete |
 | Chapter 3 prompts and structured output | Complete |
 | Chapter 4 function calling and tool execution | In progress |
+| Chapter 5 manual agent loop | In progress |
 | Ruff | Complete |
 | GitHub Actions CI | Complete |
 | Next | Higher-order LangChain orchestration and reuse patterns |
@@ -460,7 +473,7 @@ GitHub repository → Actions → CI → workflow run → quality job
 
 ## Next
 
-The core Bedrock, prompt, and structured-output workflow is in place, and Chapter 3 is complete. Chapter 4 is currently in progress and focuses on the tool layer, tool binding, and the explicit execution boundary between model selection and Python execution. Deployment remains intentionally deferred.
+The core Bedrock, prompt, and structured-output workflow is in place, and Chapter 3 is complete. Chapter 4 is currently in progress and focuses on the tool layer, tool binding, and the explicit execution boundary between model selection and Python execution. The manual ReAct exercise in Chapter 5 is also underway and adds the conversation loop, execution safeguards, and token reporting needed to reason through agent behavior in a controlled way. Deployment remains intentionally deferred.
 
 ## Revisit Notes
 
