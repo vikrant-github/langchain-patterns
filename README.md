@@ -164,6 +164,22 @@ aws sts get-caller-identity
 
 Authentication uses the AWS CLI credential mechanism. `boto3` and `langchain-aws` use the standard AWS credential chain. Access keys and secrets are not stored in source code. Credentials must remain outside Git. `.env` and other `.env.*` files are ignored by `.gitignore`, while `.env.example` remains allowed for future non-secret configuration documentation.
 
+## Troubleshooting AWS Login
+
+For this container environment, use the cross-device login flow:
+
+```bash
+aws login --remote
+```
+
+Open the URL printed by the command in a browser outside the container. Enter the authorization code shown after completing the browser login, then verify the session:
+
+```bash
+aws sts get-caller-identity
+```
+
+A successful identity check confirms that the AWS session is ready for the Bedrock exercises.
+
 ## Amazon Bedrock Setup
 
 Bedrock access is configured for `us-east-1`. Model availability was checked with:
@@ -235,6 +251,39 @@ Demonstrates a three-turn Databricks MLOps conversation using message history, s
 ### `02_parameters.py`
 
 Compares supported Nova 2 Lite temperature values, invokes each configuration twice, and reports input, output, and total token usage from LangChain response metadata.
+
+## Chapter 3: Prompts, Messages, and Structured Output
+
+Chapter 3 introduces the prompt and message abstractions that support more advanced LangChain patterns. The conceptual progression is:
+
+```text
+Prompts & Messages
+├── Messages
+│   ├── SystemMessage
+│   ├── HumanMessage
+│   ├── AIMessage
+│   └── Dynamic construction → Agents
+├── Templates
+│   ├── ChatPromptTemplate
+│   ├── PromptTemplate
+│   ├── FewShotChatMessagePromptTemplate
+│   └── Template composition → RAG systems
+└── Structured Output
+	├── Pydantic BaseModel
+	├── Field descriptions
+	├── with_structured_output
+	└── Nested schemas → Data extraction
+```
+
+The chapter connects three layers of the LangChain API:
+
+| Layer | Concepts | Prepares for |
+| --- | --- | --- |
+| Messages | `SystemMessage`, `HumanMessage`, `AIMessage`, and dynamic message construction | Agents |
+| Templates | `ChatPromptTemplate`, `PromptTemplate`, `FewShotChatMessagePromptTemplate`, and template composition | RAG systems |
+| Structured output | Pydantic `BaseModel`, field descriptions, `with_structured_output`, and nested schemas | Data extraction |
+
+Examples for these concepts will be added under `exercises/` as the chapter is implemented.
 
 ## Testing
 
@@ -323,9 +372,10 @@ GitHub repository → Actions → CI → workflow run → quality job
 | Chapter 1 | Complete |
 | Model configuration tests | Complete |
 | Chapter 2 chat models | Complete |
+| Chapter 3 prompts and structured output | Planned |
 | Ruff | Complete |
 | GitHub Actions CI | Complete |
-| Next | Chapter 3 |
+| Next | Chapter 3 exercises |
 
 ## Development Workflow
 
@@ -345,7 +395,7 @@ GitHub repository → Actions → CI → workflow run → quality job
 
 ## Next
 
-Chapters 1 and 2 are complete. The next module will be added when its implementation requirements are defined. Deployment is intentionally deferred.
+Chapters 1 and 2 are complete. Chapter 3 concepts are defined, and their hands-on examples will be added next. Deployment is intentionally deferred.
 
 ## Revisit Notes
 
