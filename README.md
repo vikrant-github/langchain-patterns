@@ -28,7 +28,7 @@ Commit and push
 GitHub Actions
 ```
 
-The objective is understanding, not copy/paste. Exercises are deliberately small engineering and experimentation surfaces. Reusable code belongs in `src/lc_patterns`; hands-on implementations belong in `exercises`. Tests are added after a chapter or module is complete. CI validates the repository without requiring AWS access. Deployment is intentionally deferred.
+Exercises are intentionally small engineering surfaces. Reusable code belongs in `src/lc_patterns`; hands-on implementations belong in `exercises`. Tests are added after a chapter or module is complete. CI validates the repository without requiring AWS access. Deployment is intentionally deferred.
 
 ## Current Repository
 
@@ -43,18 +43,30 @@ langchain-patterns/
 │   ├── models/
 │   │   ├── __init__.py
 │   │   └── chat.py
+│   ├── prompts/
+│   │   └── templates.py
+│   ├── schemas/
+│   │   └── structured_outputs.py
 │   └── py.typed
 ├── exercises/
 │   ├── 01_models/
 │   │   ├── basic_invocation.py
 │   │   ├── message_interaction.py
 │   │   └── model_comparison.py
-│   └── 02-chat-models/
-│       ├── 01_multi_turn.py
-│       └── 02_parameters.py
+│   ├── 02-chat-models/
+│   │   ├── 01_multi_turn.py
+│   │   └── 02_parameters.py
+│   └── 03-prompts-messages-outputs/
+│       ├── 01_messages_vs_templates.py
+│       ├── 02_dynamic_message_construction.py
+│       ├── 03_prompt_templates.py
+│       ├── 04_few_shot_and_composition.py
+│       ├── 05_basic_structured_output.py
+│       └── 06_complex_pydantic_schema.py
 ├── tests/
 │   ├── __init__.py
-│   └── test_chat.py
+│   ├── test_chat.py
+│   └── test_prompts_messages_outputs.py
 ├── .github/
 │   └── workflows/
 │       └── ci.yml
@@ -287,7 +299,25 @@ Examples for these concepts will be added under `exercises/` as the chapter is i
 
 ## Testing
 
-[tests/test_chat.py](tests/test_chat.py) validates model construction without invoking Bedrock. The tests verify the `ChatBedrockConverse` type, both model IDs, and the `us-east-1` region. They require no AWS credentials.
+The repository keeps tests focused on deterministic, local Python behavior. We do not add tests that call Bedrock or any other external LLM service.
+
+### Existing tests
+
+[tests/test_chat.py](tests/test_chat.py) validates the reusable Bedrock model configuration without invoking AWS. It verifies the `ChatBedrockConverse` type, the expected model IDs, and the `us-east-1` region.
+
+### Chapter 3 tests
+
+[tests/test_prompts_messages_outputs.py](tests/test_prompts_messages_outputs.py) adds local validation for the reusable prompt and schema code in Chapter 3:
+
+- `ModelMetadata` valid construction
+- `GovernedModel` valid nested construction
+- invalid `lifecycle_stage` rejection
+- nested field access and attribute traversal
+- template `input_variables`
+- successful template rendering
+- few-shot template construction
+
+These tests intentionally check logic that is pure Python and fully local. They verify the contract of the abstraction without depending on model output, token counts, or Bedrock availability.
 
 Run the checks locally:
 
@@ -298,7 +328,7 @@ uv run pytest
 Expected result at the current revision:
 
 ```text
-2 passed
+8 passed
 ```
 
 Run Ruff:
@@ -312,6 +342,29 @@ Expected result:
 ```text
 All checks passed!
 ```
+
+## AI-assisted programming
+
+AI is useful in this repository when it helps narrow the gap between intent and executable code. The goal is not to delegate design; it is to accelerate the mechanical parts of the work while preserving engineering discipline.
+
+The pattern is simple and consistent:
+
+1. Define the contract precisely.
+2. Keep the test local and deterministic.
+3. Ask for the smallest change that proves the behavior.
+4. Review the output for correctness before accepting it.
+5. Keep the boundary of the work explicit.
+
+That is how the Chapter 3 pytest coverage was structured: validate schema constraints, prompt rendering, and example composition without calling Bedrock, without mocking the model layer, and without introducing a fake test framework.
+
+The prompt is not a free-form request for a complete solution. It is a specification for a narrow runtime check on real Python behavior. In practice, that means validating:
+
+- `ModelMetadata` accepts valid values and rejects invalid lifecycle metadata
+- `GovernedModel` preserves nested ownership and governance fields
+- `ChatPromptTemplate` and `PromptTemplate` render the expected strings
+- `FewShotChatMessagePromptTemplate` contains the example sequence in the correct order
+
+This keeps the feedback loop short and the tests meaningful. The engineering judgment still sits with the developer: decide the contract, keep the scope tight, and make sure the code is still readable, testable, and grounded in the actual repository architecture.
 
 ## Git Conventions
 

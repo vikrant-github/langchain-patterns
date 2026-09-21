@@ -1,6 +1,5 @@
 """Demonstrate few-shot prompting and prompt template composition."""
 
-from botocore import model
 from langchain_core.prompts import ChatPromptTemplate
 
 from lc_patterns.models.chat import get_nova_2_lite
