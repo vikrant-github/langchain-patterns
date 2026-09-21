@@ -30,6 +30,8 @@ GitHub Actions
 
 Exercises are intentionally small engineering surfaces. Reusable code belongs in `src/lc_patterns`; hands-on implementations belong in `exercises`. Tests are added after a chapter or module is complete. CI validates the repository without requiring AWS access. Deployment is intentionally deferred.
 
+Chapter 4 introduces the core distinction between a tool definition and a bound model capability: `@tool` defines the executable capability and its validated input contract, while `bind_tools()` is what makes that tool selectable by the chat model for tool calling.
+
 ## Current Repository
 
 The implemented repository currently contains:
@@ -47,6 +49,8 @@ langchain-patterns/
 │   │   └── templates.py
 │   ├── schemas/
 │   │   └── structured_outputs.py
+│   ├── tools/
+│   │   └── weather.py
 │   └── py.typed
 ├── exercises/
 │   ├── 01_models/
@@ -56,13 +60,16 @@ langchain-patterns/
 │   ├── 02-chat-models/
 │   │   ├── 01_multi_turn.py
 │   │   └── 02_parameters.py
-│   └── 03-prompts-messages-outputs/
-│       ├── 01_messages_vs_templates.py
-│       ├── 02_dynamic_message_construction.py
-│       ├── 03_prompt_templates.py
-│       ├── 04_few_shot_and_composition.py
-│       ├── 05_basic_structured_output.py
-│       └── 06_complex_pydantic_schema.py
+│   ├── 03-prompts-messages-outputs/
+│   │   ├── 01_messages_vs_templates.py
+│   │   ├── 02_dynamic_message_construction.py
+│   │   ├── 03_prompt_templates.py
+│   │   ├── 04_few_shot_and_composition.py
+│   │   ├── 05_basic_structured_output.py
+│   │   └── 06_complex_pydantic_schema.py
+│   └── 04-function-calling-tools/
+│       ├── 01_tool_definition_and_binding.py
+│       └── 02_tool_execution_loop.py
 ├── tests/
 │   ├── __init__.py
 │   ├── test_chat.py
