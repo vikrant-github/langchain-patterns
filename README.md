@@ -1,8 +1,8 @@
 # langchain-patterns
 
-Engineering-focused LangChain patterns, implementations, and experiments using Amazon Bedrock, built for hands-on implementation, certification readiness, and practical reference.
+Engineering-focused LangChain patterns and Bedrock experiments for practical implementation, library extraction, and repeatable local validation.
 
-This repository is for evaluating current LangChain APIs, turning concepts into reusable engineering patterns, and maintaining focused experiments that can be revisited later.
+This repository evaluates current LangChain APIs, turns concepts into reusable patterns, and keeps experimentation grounded in small, reviewable implementations.
 
 ## Engineering Approach
 
@@ -425,10 +425,10 @@ GitHub repository → Actions → CI → workflow run → quality job
 | Chapter 1 | Complete |
 | Model configuration tests | Complete |
 | Chapter 2 chat models | Complete |
-| Chapter 3 prompts and structured output | Planned |
+| Chapter 3 prompts and structured output | Complete |
 | Ruff | Complete |
 | GitHub Actions CI | Complete |
-| Next | Chapter 3 exercises |
+| Next | Higher-order LangChain orchestration and reuse patterns |
 
 ## Development Workflow
 
@@ -448,7 +448,7 @@ GitHub repository → Actions → CI → workflow run → quality job
 
 ## Next
 
-Chapters 1 and 2 are complete. Chapter 3 concepts are defined, and their hands-on examples will be added next. Deployment is intentionally deferred.
+The core Bedrock, prompt, and structured-output workflow is in place. The next work focuses on higher-order orchestration, reuse, and pattern extraction as the project matures. Deployment remains intentionally deferred.
 
 ## Revisit Notes
 
