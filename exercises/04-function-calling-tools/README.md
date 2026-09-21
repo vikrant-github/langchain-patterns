@@ -25,6 +25,10 @@ Execution control is determined by the orchestration model, not by whether a too
 
 This is an important engineering boundary: binding does not make the function run; it only makes the tool discoverable and callable by the model.
 
+### Tool selection is influenced by description, not enforced by it
+
+A bound tool is selected by the model using the metadata exposed to it: name, description, and input schema. A clearer or more specific description can improve the likelihood that the model chooses the right tool for a given query, but it is a ranking signal, not a dispatch guarantee. In production, tool descriptions should be precise and scoped; when selection priority matters, the application should enforce routing or validation explicitly rather than assuming the model will always prefer one tool over another.
+
 ### Tool-calling execution model
 
 The tool-calling loop is explicit and deliberately separated:
