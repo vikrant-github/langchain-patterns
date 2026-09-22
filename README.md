@@ -42,6 +42,10 @@ langchain-patterns/
 │   ├── __init__.py
 │   ├── config/
 │   │   └── __init__.py
+│   ├── mcp/
+│   │   └── client.py
+│   ├── middleware/
+│   │   └── logging.py
 │   ├── models/
 │   │   ├── __init__.py
 │   │   └── chat.py
@@ -50,6 +54,7 @@ langchain-patterns/
 │   ├── schemas/
 │   │   └── structured_outputs.py
 │   ├── tools/
+│   │   ├── customer.py
 │   │   └── weather.py
 │   └── py.typed
 ├── exercises/
@@ -67,12 +72,21 @@ langchain-patterns/
 │   │   ├── 04_few_shot_and_composition.py
 │   │   ├── 05_basic_structured_output.py
 │   │   └── 06_complex_pydantic_schema.py
-│   └── 04-function-calling-tools/
-│       ├── 01_tool_definition_and_binding.py
-│       └── 02_tool_execution_loop.py
+│   ├── 04-function-calling-tools/
+│   │   ├── 01_tool_definition_and_binding.py
+│   │   ├── 02_tool_execution_loop.py
+│   │   ├── 03_tool_selection_pattern.py
+│   │   └── README.md
+│   ├── 05-agents/
+│   │   ├── 01_create_agent.py
+│   │   ├── 02_manual_react.py
+│   │   └── 03_agent_middleware.py
+│   └── 06-mcp/
+│       └── 01_context7_agent.py
 ├── tests/
 │   ├── __init__.py
 │   ├── test_chat.py
+│   ├── test_customer_tool.py
 │   └── test_prompts_messages_outputs.py
 ├── .github/
 │   └── workflows/
@@ -347,6 +361,50 @@ The important point is that middleware sits around the runtime operations, not a
 
 The Chapter 5 exercise demonstrates the pattern in practice and should be read alongside the reusable middleware implementation in `src/lc_patterns/middleware/logging.py`.
 
+## Chapter 6: Model Context Protocol
+
+Chapter 6 adds a live MCP integration using Context7. MCP, or Model Context Protocol, is a standardized protocol for connecting AI applications to external capabilities. It does not replace the LLM or the LangChain agent.
+
+The implementation follows this architecture:
+
+```text
+Context7 MCP Server
+	|
+	v
+Streamable HTTP
+	|
+	v
+MCP Client
+	|
+	v
+MCP Tools
+	|
+	v
+LangChain Agent
+	|
+	v
+Amazon Bedrock
+```
+
+Traditional LangChain tools are normally implemented and owned by the application. MCP allows capabilities exposed by an MCP server to be discovered and consumed by the application. The existing `create_agent()` pattern remains unchanged; MCP changes the source of the tools.
+
+The client connects to an MCP server, while the server exposes capabilities such as tools. The client discovers those capabilities and makes them available to the application or agent.
+
+The transport describes how communication occurs:
+
+- `stdio`: process-to-process communication through standard input and output. This is commonly used when an MCP server is launched as a local subprocess.
+- Streamable HTTP: network communication with an MCP endpoint. This is commonly used by remote or shared MCP servers.
+
+These are common deployment patterns, not fixed location rules. A local server is not always `stdio`, and a remote server is not always HTTP.
+
+Context7 is a software, library, and framework documentation service. In this example, its MCP server exposes documentation-related tools; it is not a generic document or Word-document service.
+
+The reusable and chapter-specific code is separated as follows:
+
+- `src/lc_patterns/mcp/client.py` provides reusable MCP client construction through `get_mcp_client(server_config)`.
+- `exercises/06-mcp/01_context7_agent.py` contains the Context7 configuration and composes the discovered tools with the existing LangChain agent pattern.
+
+The dependencies are `langchain-mcp-adapters==0.3.2` and `mcp==1.30.0`. The Context7 exercise is a live external integration and is not covered by normal pytest because it depends on external MCP/network infrastructure and Bedrock. Ruff validation and successful live execution are used for this example. Deterministic tests should be added when meaningful reusable behavior exists.
 ## Testing
 
 The repository keeps tests focused on deterministic, local Python behavior. We do not add tests that call Bedrock or any other external LLM service.
