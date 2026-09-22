@@ -306,7 +306,7 @@ The corresponding implementations are in `exercises/03-prompts-messages-outputs/
 
 ## Chapter 4: Function Calling and Tool Execution
 
-Chapter 4 is currently in progress. The repository contains the beginning of the tool-calling work in `exercises/04-function-calling-tools/` and the reusable tool implementations in `src/lc_patterns/tools/`, with the focus on the boundary between tool definition and model binding.
+Chapter 4 is complete. The repository includes the implemented tool-calling work in `exercises/04-function-calling-tools/` and the reusable tool implementations in `src/lc_patterns/tools/`, with the focus on the boundary between tool definition, model binding, execution, and tool selection.
 
 ### Manual ReAct loop
 
@@ -319,6 +319,33 @@ The repository also includes a manual ReAct-style agent exercise in `exercises/0
 - token usage reporting from `usage_metadata`
 
 This keeps the exercise readable and grounded in the underlying LangChain pattern: the model decides when a tool is needed, and the application executes it and feeds the result back into the conversation.
+
+## Chapter 5: Agents and Middleware
+
+The agent exercise in `exercises/05-agents/03_agent_middleware.py` demonstrates the runtime boundary created by `create_agent()`. `create_agent()` constructs the LangChain agent runtime and wires the model, tools, system prompt, and middleware together. The application does not replace the runtime loop; it configures it.
+
+The key responsibility split is straightforward:
+
+- The LLM decides whether a tool is needed and which tool to request.
+- The LangChain agent runtime orchestrates the actual loop: model calls, tool execution, observations, iteration, and termination.
+- Middleware is registered by the application and invoked by the LangChain runtime at the lifecycle hooks that matter.
+
+This is not "middleware between tools." Middleware wraps or intercepts specific agent-runtime operations. It is a runtime extension point for the agent loop, not a second tool layer.
+
+The reusable implementation is in `src/lc_patterns/middleware/logging.py` and is named `AgentLoggingMiddleware`. It is intentionally narrow and observability-focused:
+
+- `wrap_model_call()` adds logging around model invocations, with visibility into the current message count and the available tool set before the call and the resulting tool-call structure after the call.
+- `wrap_tool_call()` adds logging around tool invocations, tracking when a tool is called, when it succeeds, and when it fails by returning a `ToolMessage` error payload.
+
+This is a good example of the general middleware model: the runtime owns orchestration, while middleware adds policy or infrastructure concerns at specific hooks.
+
+```text
+User → Agent Runtime → [Middleware] Model → [Middleware] Tool → Model → Final Answer
+```
+
+The important point is that middleware sits around the runtime operations, not around the tool definitions themselves. Observability is only one use case. The same mechanism can support error handling, retries, authorization, metrics, routing, and guardrails without changing the core agent control flow.
+
+The Chapter 5 exercise demonstrates the pattern in practice and should be read alongside the reusable middleware implementation in `src/lc_patterns/middleware/logging.py`.
 
 ## Testing
 
@@ -449,7 +476,7 @@ GitHub repository → Actions → CI → workflow run → quality job
 | Model configuration tests | Complete |
 | Chapter 2 chat models | Complete |
 | Chapter 3 prompts and structured output | Complete |
-| Chapter 4 function calling and tool execution | In progress |
+| Chapter 4 function calling and tool execution | Complete |
 | Chapter 5 manual agent loop | In progress |
 | Ruff | Complete |
 | GitHub Actions CI | Complete |
@@ -473,7 +500,7 @@ GitHub repository → Actions → CI → workflow run → quality job
 
 ## Next
 
-The core Bedrock, prompt, and structured-output workflow is in place, and Chapter 3 is complete. Chapter 4 is currently in progress and focuses on the tool layer, tool binding, and the explicit execution boundary between model selection and Python execution. The manual ReAct exercise in Chapter 5 is also underway and adds the conversation loop, execution safeguards, and token reporting needed to reason through agent behavior in a controlled way. Deployment remains intentionally deferred.
+The core Bedrock, prompt, and structured-output workflow is in place, and Chapter 3 is complete. Chapter 4 is complete and covers the tool layer, tool binding, execution flow, and selection boundary between model decision-making and Python execution. The manual ReAct exercise in Chapter 5 is also underway and adds the conversation loop, execution safeguards, and token reporting needed to reason through agent behavior in a controlled way. Deployment remains intentionally deferred.
 
 ## Revisit Notes
 
