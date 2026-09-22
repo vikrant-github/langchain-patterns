@@ -43,7 +43,9 @@ langchain-patterns/
 │   ├── config/
 │   │   └── __init__.py
 │   ├── mcp/
-│   │   └── client.py
+│   │   ├── client.py
+│   │   ├── repositories.json
+│   │   └── stdio_git_mcp_server.py
 │   ├── middleware/
 │   │   └── logging.py
 │   ├── models/
@@ -82,7 +84,8 @@ langchain-patterns/
 │   │   ├── 02_manual_react.py
 │   │   └── 03_agent_middleware.py
 │   └── 06-mcp/
-│       └── 01_context7_agent.py
+│       ├── 01_context7_agent.py
+│       └── 02_stdio_git_agent.py
 ├── tests/
 │   ├── __init__.py
 │   ├── test_chat.py
@@ -365,48 +368,91 @@ The Chapter 5 exercise demonstrates the pattern in practice and should be read a
 
 ## Chapter 6: Model Context Protocol
 
-Chapter 6 adds a live MCP integration using Context7. MCP, or Model Context Protocol, is a standardized protocol for connecting AI applications to external capabilities. It does not replace the LLM or the LangChain agent.
+MCP, or Model Context Protocol, is a standardized protocol for connecting an AI
+application or agent to external capabilities. MCP is not an LLM, agent, memory
+system, or orchestration framework. An MCP server exposes capabilities, while an
+MCP client connects to the server and discovers and uses those capabilities.
 
-The implementation follows this architecture:
+The connection sits between the application and the capability provider:
 
 ```text
-Context7 MCP Server
-	|
-	v
-Streamable HTTP
-	|
-	v
-MCP Client
-	|
-	v
-MCP Tools
-	|
-	v
-LangChain Agent
-	|
-	v
-Amazon Bedrock
+Application / LangChain Agent
+	        ↓
+	  MCP Client
+	        ↓
+	 MCP Server / Tools
+	        ↓
+External Capability / Data
 ```
 
-Traditional LangChain tools are normally implemented and owned by the application. MCP allows capabilities exposed by an MCP server to be discovered and consumed by the application. The existing `create_agent()` pattern remains unchanged; MCP changes the source of the tools.
+MCP provides the standardized connection between the client and server. The
+application can consume the discovered capabilities without owning the server's
+implementation.
 
-The client connects to an MCP server, while the server exposes capabilities such as tools. The client discovers those capabilities and makes them available to the application or agent.
+The transports demonstrated here describe how the client and server communicate;
+they do not define whether either side is local or remote:
 
-The transport describes how communication occurs:
+```text
+stdio
+Client ↔ locally launched MCP server process
+Communication through stdin/stdout
 
-- `stdio`: process-to-process communication through standard input and output. This is commonly used when an MCP server is launched as a local subprocess.
-- Streamable HTTP: network communication with an MCP endpoint. This is commonly used by remote or shared MCP servers.
+Streamable HTTP
+Client ↔ network-accessible MCP server
+Communication over HTTP
+```
 
-These are common deployment patterns, not fixed location rules. A local server is not always `stdio`, and a remote server is not always HTTP.
+In these examples, Context7 uses Streamable HTTP and the Git MCP server uses
+stdio.
 
-Context7 is a software, library, and framework documentation service. In this example, its MCP server exposes documentation-related tools; it is not a generic document or Word-document service.
+### Example 1: Context7
 
-The reusable and chapter-specific code is separated as follows:
+[exercises/06-mcp/01_context7_agent.py](exercises/06-mcp/01_context7_agent.py)
+uses `MultiServerMCPClient` to connect to the Context7 MCP server using
+Streamable HTTP. It discovers Context7 documentation tools and passes them to the
+existing LangChain `create_agent()` pattern. Context7 provides current and
+version-specific documentation for software libraries and frameworks.
 
-- `src/lc_patterns/mcp/client.py` provides reusable MCP client construction through `get_mcp_client(server_config)`.
-- `exercises/06-mcp/01_context7_agent.py` contains the Context7 configuration and composes the discovered tools with the existing LangChain agent pattern.
+### Example 2: Local Git MCP server
 
-The direct runtime dependency is `langchain-mcp-adapters>=0.3.2`. Its locked dependency graph includes `mcp==1.30.0`; application code does not import `mcp` directly. The Context7 exercise is a live external integration and is not covered by normal pytest because it depends on external MCP/network infrastructure and Bedrock. Ruff validation and successful live execution are used for this example. Deterministic tests should be added when meaningful reusable behavior exists.
+The local stdio example is implemented across:
+
+- `src/lc_patterns/mcp/stdio_git_mcp_server.py`
+- `src/lc_patterns/mcp/repositories.json`
+- `exercises/06-mcp/02_stdio_git_agent.py`
+
+The server runs as a local subprocess and communicates through stdio. It exposes
+read-only Git-related capabilities through MCP tools, backed by a small
+deterministic local dataset. The MCP mechanism is real; the dataset is
+intentionally a simple backend so the example does not require GitHub
+authentication, APIs, or additional infrastructure.
+
+Server-side MCP tools belong under `src/lc_patterns/mcp/`. The existing
+`src/lc_patterns/tools/` directory contains ordinary LangChain-native tools.
+
+The architectural progression from Chapter 5 is:
+
+```text
+Chapter 5:
+Application → LangChain Agent → LLM → LangChain Tools
+
+Chapter 6:
+Application → LangChain Agent → MCP Client → MCP Server → External Capability
+```
+
+`create_agent()` remains the same. The major difference is the source of the
+tools: Chapter 5 uses LangChain-native tools, while Chapter 6 demonstrates tools
+discovered from MCP servers.
+
+The small reusable client construction helper is in
+`src/lc_patterns/mcp/client.py`. Server-specific configuration remains in each
+exercise rather than being prematurely abstracted.
+
+Validation for these examples includes Ruff, Python compilation and runtime
+checks where applicable, and live execution of the Context7 and stdio MCP
+examples. Live MCP and Bedrock integrations are not covered by deterministic
+pytest tests.
+
 ## Testing
 
 The repository keeps tests focused on deterministic, local Python behavior. We do not add tests that call Bedrock or any other external LLM service.
@@ -438,7 +484,7 @@ uv run pytest
 Expected result at the current revision:
 
 ```text
-8 passed
+10 passed
 ```
 
 Run Ruff:
