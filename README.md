@@ -153,6 +153,7 @@ Runtime dependencies declared in `pyproject.toml` are:
 
 - `langchain`
 - `langchain-aws`
+- `langchain-mcp-adapters`
 - `pydantic`
 - `botocore[crt]`
 
@@ -167,6 +168,7 @@ The explicit addition command was:
 
 ```bash
 uv add "botocore[crt]"
+uv add "langchain-mcp-adapters"
 uv sync
 ```
 
@@ -404,7 +406,7 @@ The reusable and chapter-specific code is separated as follows:
 - `src/lc_patterns/mcp/client.py` provides reusable MCP client construction through `get_mcp_client(server_config)`.
 - `exercises/06-mcp/01_context7_agent.py` contains the Context7 configuration and composes the discovered tools with the existing LangChain agent pattern.
 
-The dependencies are `langchain-mcp-adapters==0.3.2` and `mcp==1.30.0`. The Context7 exercise is a live external integration and is not covered by normal pytest because it depends on external MCP/network infrastructure and Bedrock. Ruff validation and successful live execution are used for this example. Deterministic tests should be added when meaningful reusable behavior exists.
+The direct runtime dependency is `langchain-mcp-adapters>=0.3.2`. Its locked dependency graph includes `mcp==1.30.0`; application code does not import `mcp` directly. The Context7 exercise is a live external integration and is not covered by normal pytest because it depends on external MCP/network infrastructure and Bedrock. Ruff validation and successful live execution are used for this example. Deterministic tests should be added when meaningful reusable behavior exists.
 ## Testing
 
 The repository keeps tests focused on deterministic, local Python behavior. We do not add tests that call Bedrock or any other external LLM service.
