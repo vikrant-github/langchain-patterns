@@ -1,0 +1,36 @@
+[
+  {
+    "name": "langchain-patterns",
+    "description": "Engineering-focused LangChain patterns and implementations.",
+    "default_branch": "main",
+    "language": "Python",
+    "latest_pull_request": {
+      "number": 42,
+      "title": "Add MCP stdio integration",
+      "author": "vikrant",
+      "status": "open"
+    },
+    "workflow": {
+      "name": "CI",
+      "status": "passing",
+      "branch": "main"
+    }
+  },
+  {
+    "name": "analytics-platform",
+    "description": "Enterprise analytics and data engineering platform.",
+    "default_branch": "main",
+    "language": "Python",
+    "latest_pull_request": {
+      "number": 18,
+      "title": "Improve data ingestion validation",
+      "author": "data-engineering",
+      "status": "merged"
+    },
+    "workflow": {
+      "name": "CI",
+      "status": "passing",
+      "branch": "main"
+    }
+  }
+]
