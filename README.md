@@ -343,11 +343,13 @@ The corresponding implementations are in `exercises/03-prompts-messages-outputs/
 
 ## Chapter 4: Function Calling and Tool Execution
 
-Chapter 4 is complete. The repository includes the implemented tool-calling work in `exercises/04-function-calling-tools/` and the reusable tool implementations in `src/lc_patterns/tools/`, with the focus on the boundary between tool definition, model binding, execution, and tool selection.
+Chapter 4 covers the tool-calling boundary itself: how a tool is defined, bound to a model, executed, and selected for invocation. This chapter is about the tool surface and the model/tool contract; it does not define the agent runtime loop or middleware lifecycle that is introduced in Chapter 5.
+
+The repository includes the implemented tool-calling work in `exercises/04-function-calling-tools/` and the reusable tool implementations in `src/lc_patterns/tools/`.
 
 ### Manual ReAct loop
 
-The repository also includes a manual ReAct-style agent exercise in `exercises/05-agents/02_manual_react.py`. It demonstrates:
+The repository also includes a manual ReAct-style agent exercise in `exercises/05-agents/02_manual_react.py`. This is a deliberately explicit control-flow example for the same underlying model/tool pattern. It demonstrates:
 
 - model/tool binding for a tool-calling loop
 - explicit tool execution by application code
@@ -359,7 +361,9 @@ This keeps the exercise readable and grounded in the underlying LangChain patter
 
 ## Chapter 5: Agents and Middleware
 
-The agent exercise in `exercises/05-agents/03_agent_middleware.py` demonstrates the runtime boundary created by `create_agent()`. `create_agent()` constructs the LangChain agent runtime and wires the model, tools, system prompt, and middleware together. The application does not replace the runtime loop; it configures it.
+Chapter 5 starts at the agent runtime boundary. After the tool contract and model binding are established in Chapter 4, this chapter covers the runtime orchestration created by `create_agent()`. The LangChain agent runtime owns the loop, while middleware hooks into that runtime at specific lifecycle points.
+
+The agent exercise in `exercises/05-agents/03_agent_middleware.py` demonstrates this runtime boundary. `create_agent()` constructs the LangChain agent runtime and wires the model, tools, system prompt, and middleware together. The application does not replace the runtime loop; it configures it.
 
 The key responsibility split is straightforward:
 
