@@ -30,7 +30,7 @@ import asyncio
 
 from langchain.agents import create_agent
 
-from lc_patterns.mcp.client import get_mcp_client
+from lc_patterns.mcp.mcp_client import get_mcp_client
 from lc_patterns.models.chat import get_nova_2_lite
 
 
