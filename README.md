@@ -32,6 +32,23 @@ Exercises are intentionally small engineering surfaces. Reusable code belongs in
 
 Chapter 4 introduces the core distinction between a tool definition and a bound model capability: `@tool` defines the executable capability and its validated input contract, while `bind_tools()` is what makes that tool selectable by the chat model for tool calling.
 
+## Repository Architecture
+
+The repository is intentionally split into three layers:
+
+```text
+src/
+    reusable implementations and shared primitives
+
+exercises/
+    chapter-specific demonstrations and integrations
+
+tests/
+    deterministic, local Python validation
+```
+
+`src/lc_patterns` contains the reusable implementation surface: model configuration, prompt/schemas, tools, middleware, and MCP client/server support. `exercises/` keeps the chapter-specific compositions and live integration examples readable and isolated. `tests/` validate local Python behavior without depending on a live Bedrock or external MCP session.
+
 ## Current Repository
 
 The implemented repository currently contains:
@@ -43,7 +60,7 @@ langchain-patterns/
 │   ├── config/
 │   │   └── __init__.py
 │   ├── mcp/
-│   │   ├── client.py
+│   │   ├── mcp_client.py
 │   │   ├── repositories.json
 │   │   └── stdio_git_mcp_server.py
 │   ├── middleware/
@@ -84,8 +101,9 @@ langchain-patterns/
 │   │   ├── 02_manual_react.py
 │   │   └── 03_agent_middleware.py
 │   └── 06-mcp/
-│       ├── 01_context7_agent.py
-│       └── 02_stdio_git_agent.py
+│       ├── 01_context7_mcp_agent.py
+│       ├── 02_stdio_git_agent.py
+│       └── 03_multi_mcp_server_agent.py
 ├── tests/
 │   ├── __init__.py
 │   ├── test_chat.py
@@ -407,7 +425,7 @@ stdio.
 
 ### Example 1: Context7
 
-[exercises/06-mcp/01_context7_agent.py](exercises/06-mcp/01_context7_agent.py)
+[exercises/06-mcp/01_context7_mcp_agent.py](exercises/06-mcp/01_context7_mcp_agent.py)
 uses `MultiServerMCPClient` to connect to the Context7 MCP server using
 Streamable HTTP. It discovers Context7 documentation tools and passes them to the
 existing LangChain `create_agent()` pattern. Context7 provides current and
@@ -430,6 +448,42 @@ authentication, APIs, or additional infrastructure.
 Server-side MCP tools belong under `src/lc_patterns/mcp/`. The existing
 `src/lc_patterns/tools/` directory contains ordinary LangChain-native tools.
 
+### Example 3: Multi-Server MCP Agent
+
+[exercises/06-mcp/03_multi_mcp_server_agent.py](exercises/06-mcp/03_multi_mcp_server_agent.py)
+demonstrates one LangChain agent consuming tools from multiple MCP servers
+simultaneously. The example combines the Context7 MCP server over Streamable HTTP
+and a local Git MCP server over stdio into a single tool set discovered by
+`MultiServerMCPClient`.
+
+```text
+Context7 MCP Server
+      ↓
+Streamable HTTP
+      ↓
+      ┐
+      │
+MultiServerMCPClient
+      │
+      ┘
+      ↑
+stdio
+      ↑
+Local Git MCP Server
+```
+
+The key engineering point is that the application composes existing MCP client
+and server infrastructure without creating a new reusable abstraction in
+`src/lc_patterns`. Context7 uses Streamable HTTP, the local Git MCP server uses
+stdio, the tools are combined into one collection, and the same existing
+`create_agent(model, tools)` pattern is retained. The agent can select the
+appropriate MCP-provided tool based on the user request.
+
+> MCP allows an application to connect to multiple servers, potentially using different transports, while presenting their capabilities as tools to the agent.
+
+No new reusable component was required in `src/`; the exercise composes the
+existing MCP client and Git MCP server.
+
 The architectural progression from Chapter 5 is:
 
 ```text
@@ -445,13 +499,12 @@ tools: Chapter 5 uses LangChain-native tools, while Chapter 6 demonstrates tools
 discovered from MCP servers.
 
 The small reusable client construction helper is in
-`src/lc_patterns/mcp/client.py`. Server-specific configuration remains in each
+`src/lc_patterns/mcp/mcp_client.py`. Server-specific configuration remains in each
 exercise rather than being prematurely abstracted.
 
-Validation for these examples includes Ruff, Python compilation and runtime
-checks where applicable, and live execution of the Context7 and stdio MCP
-examples. Live MCP and Bedrock integrations are not covered by deterministic
-pytest tests.
+Validation for these examples includes Ruff, successful runtime execution, live
+MCP interaction with Context7, and local stdio MCP server execution. Live MCP and
+Bedrock integrations are not covered by deterministic pytest tests.
 
 ## Testing
 
