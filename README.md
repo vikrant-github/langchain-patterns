@@ -59,6 +59,9 @@ langchain-patterns/
 │   ├── __init__.py
 │   ├── config/
 │   │   └── __init__.py
+│   ├── embeddings/
+│   │   ├── __init__.py
+│   │   └── aws_bedrock_embeddings.py
 │   ├── mcp/
 │   │   ├── mcp_client.py
 │   │   ├── repositories.json
@@ -100,14 +103,18 @@ langchain-patterns/
 │   │   ├── 01_create_agent.py
 │   │   ├── 02_manual_react.py
 │   │   └── 03_agent_middleware.py
-│   └── 06-mcp/
-│       ├── 01_context7_mcp_agent.py
-│       ├── 02_stdio_git_agent.py
-│       └── 03_multi_mcp_server_agent.py
+│   ├── 06-mcp/
+│   │   ├── 01_context7_mcp_agent.py
+│   │   ├── 02_stdio_git_agent.py
+│   │   └── 03_multi_mcp_server_agent.py
+│   └── 07-documents-embeddings-semantic-search/
+│       └── 01_document_loading_and_chunking.py
 ├── tests/
 │   ├── __init__.py
+│   ├── test_aws_bedrock_embeddings.py
 │   ├── test_chat.py
 │   ├── test_customer_tool.py
+│   ├── test_document_loading_and_chunking.py
 │   └── test_prompts_messages_outputs.py
 ├── .github/
 │   └── workflows/
@@ -127,6 +134,9 @@ langchain-patterns/
 | uv | Project creation, Python selection, dependency resolution, and environment management |
 | LangChain | Model abstractions and invocation APIs |
 | `langchain-aws` | Amazon Bedrock integration through `ChatBedrockConverse` |
+| `langchain-community` | Community document loaders such as `PyPDFLoader` |
+| `langchain-text-splitters` | Recursive document chunking |
+| `pypdf` | PDF parsing for document loading |
 | Pydantic 2.x | Validation and typed configuration used by the dependency stack |
 | pytest | Unit test runner |
 | Ruff | Linting and repository quality checks |
@@ -174,8 +184,11 @@ Runtime dependencies declared in `pyproject.toml` are:
 
 - `langchain`
 - `langchain-aws`
+- `langchain-community`
 - `langchain-mcp-adapters`
+- `langchain-text-splitters`
 - `pydantic`
+- `pypdf`
 - `botocore[crt]`
 
 `botocore[crt]` was added for the AWS login credential provider and brings the AWS CRT support required by that provider.
@@ -190,6 +203,7 @@ The explicit addition command was:
 ```bash
 uv add "botocore[crt]"
 uv add "langchain-mcp-adapters"
+uv add "langchain-community" "langchain-text-splitters" "pypdf"
 uv sync
 ```
 
@@ -510,13 +524,58 @@ Validation for these examples includes Ruff, successful runtime execution, live
 MCP interaction with Context7, and local stdio MCP server execution. Live MCP and
 Bedrock integrations are not covered by deterministic pytest tests.
 
+## Chapter 7: Documents, Embeddings & Semantic Search
+
+Chapter 7 currently establishes the document and embedding foundations for a
+future retrieval pipeline. Vector stores, semantic search, and end-to-end
+retrieval are not implemented yet.
+
+### Amazon Bedrock embeddings
+
+The reusable embedding component is
+`src/lc_patterns/embeddings/aws_bedrock_embeddings.py`. It creates Amazon Titan
+Text Embeddings V2 with model `amazon.titan-embed-text-v2:0`, 1024 dimensions,
+and normalized embeddings. The component provides a centralized embedding
+configuration for later document indexing and retrieval work without claiming
+that those layers exist today.
+
+Deterministic coverage is in
+`tests/test_aws_bedrock_embeddings.py`. The tests mock the Bedrock embeddings
+constructor, verify the configuration, and validate initialization error
+handling without invoking AWS.
+
+### Document loading and chunking
+
+`exercises/07-documents-embeddings-semantic-search/01_document_loading_and_chunking.py`
+uses a real Apache HTTP Server documentation PDF as its input document. It
+loads PDF pages into LangChain `Document` objects, splits them with
+`RecursiveCharacterTextSplitter`, preserves document metadata, and adds a
+`start_index` metadata field. Current validation loaded 726 pages and produced
+2,028 chunks.
+
+Deterministic tests are in
+`tests/test_document_loading_and_chunking.py`. They validate missing-file
+handling and local document splitting without loading the external PDF.
+
+### Chat model hardening
+
+`src/lc_patterns/models/chat.py` now handles Bedrock chat model initialization
+failures explicitly and preserves the original exception through exception
+chaining. `tests/test_chat.py` covers the configuration and failure paths
+without invoking AWS. This is an engineering hardening change to the reusable
+model layer, not part of the Chapter 7 retrieval pipeline.
+
 ## Testing
 
 The repository keeps tests focused on deterministic, local Python behavior. We do not add tests that call Bedrock or any other external LLM service.
 
 ### Existing tests
 
-[tests/test_chat.py](tests/test_chat.py) validates the reusable Bedrock model configuration without invoking AWS. It verifies the `ChatBedrockConverse` type, the expected model IDs, and the `us-east-1` region.
+[tests/test_chat.py](tests/test_chat.py) validates the reusable Bedrock model configuration without invoking AWS. It verifies the expected model IDs, the `us-east-1` region, and initialization error handling.
+
+[tests/test_aws_bedrock_embeddings.py](tests/test_aws_bedrock_embeddings.py) validates the Titan embeddings configuration and initialization error handling without invoking AWS.
+
+[tests/test_document_loading_and_chunking.py](tests/test_document_loading_and_chunking.py) validates missing-file handling and local chunking behavior, including metadata preservation.
 
 ### Chapter 3 tests
 
@@ -541,7 +600,7 @@ uv run pytest
 Expected result at the current revision:
 
 ```text
-10 passed
+16 passed
 ```
 
 Run Ruff:
@@ -641,6 +700,7 @@ GitHub repository → Actions → CI → workflow run → quality job
 | Chapter 3 prompts and structured output | Complete |
 | Chapter 4 function calling and tool execution | Complete |
 | Chapter 5 manual agent loop | In progress |
+| Chapter 7 documents, embeddings, and semantic search foundations | In progress |
 | Ruff | Complete |
 | GitHub Actions CI | Complete |
 | Next | Higher-order LangChain orchestration and reuse patterns |

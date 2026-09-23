@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 from langchain_core.documents import Document
 
-
 EXERCISE_PATH = (
     Path(__file__).parents[1]
     / "exercises"
