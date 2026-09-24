@@ -530,47 +530,49 @@ Chapter 7 currently establishes the document and embedding foundations for a
 future retrieval pipeline. Vector stores, semantic search, and end-to-end
 retrieval are not implemented yet.
 
+### Document loading and chunking
+
+The reusable chunking implementation now lives in
+`src/lc_patterns/documents/chunking.py`. Exercise 1,
+`exercises/07-documents-embeddings-semantic-search/01_document_loading_chunking_metadata.py`,
+uses the real Apache HTTP Server documentation PDF as its source. `PyPDFLoader`
+produces page-level LangChain `Document` objects, and
+`RecursiveCharacterTextSplitter` produces chunk-level `Document` objects.
+
+The existing `Document.metadata` dictionary is preserved through chunking.
+Loader metadata includes `source`, `page`, `page_label`, `total_pages`, and
+other PDF metadata. The splitter adds `start_index`, and the reusable chunking
+logic adds deterministic application metadata: a SHA-256 `chunk_id` and an
+ingestion-run `chunk_index`.
+
+At this stage, the chunked results are held in an in-memory Python
+`list[Document]` variable; they are not persisted yet. This list is the handoff
+between chunking and the later embedding/vector-store stages. In a real
+retrieval pipeline, the chunks and their metadata would be persisted with the
+vector-store records alongside their embeddings. This exercise establishes the
+document and metadata contract consumed by later embedding and retrieval work.
+
+Deterministic tests are in
+`tests/test_document_loading_and_chunking.py`. They validate missing-file
+handling and local document splitting without loading the external PDF.
+
 ### Amazon Bedrock embeddings
 
-The reusable embedding component is
+The reusable Titan embedding component is
 `src/lc_patterns/embeddings/aws_bedrock_embeddings.py`. It creates Amazon Titan
 Text Embeddings V2 with model `amazon.titan-embed-text-v2:0`, 1024 dimensions,
-and normalization enabled. This is the current implementation used for later
-embedding work; vector-store persistence is not introduced here.
+and normalization enabled.
+
+Exercise 2,
+`exercises/07-documents-embeddings-semantic-search/02_document_embeddings.py`,
+embeds the real document chunks using the existing Titan implementation.
+`embed_documents()` produces vectors held in process memory at this stage.
+Vector-store persistence and semantic search are not implemented yet.
 
 Deterministic coverage is in
 `tests/test_aws_bedrock_embeddings.py`. The tests mock the Bedrock embeddings
 constructor, verify the configuration, and validate initialization error
 handling without invoking AWS.
-
-### Document loading and chunking
-
-Exercise 1 is
-`exercises/07-documents-embeddings-semantic-search/01_document_loading_and_chunking.py`.
-It uses the real Apache HTTP Server documentation PDF as its input document. The
-processing flow is: PDF -> LangChain `Document` objects ->
-`RecursiveCharacterTextSplitter` -> chunked `Document` objects.
-
-Each chunk is a LangChain `Document` and carries metadata in the
-`Document.metadata` dictionary. Loader-generated metadata includes
-`source`, `page`, `page_label`, `total_pages`, and other PDF metadata exposed by
-the PDF loader. Chunking preserves this metadata and adds `start_index`.
-
-Application metadata is then added deterministically: a SHA-256 `chunk_id` based
-on the source and content, and an ingestion-run `chunk_index`. At this stage,
-the resulting chunks are held in an in-memory Python `list[Document]` variable;
-they are not persisted yet. This list is the handoff between chunking and the
-later embedding/vector-store stages.
-
-In a real retrieval pipeline, those chunks and their metadata would be persisted
-with the vector-store records alongside their embeddings. This exercise
-establishes the document and metadata contract that the later embedding and
-retrieval stages consume. Vector-store persistence and semantic search remain
-future work; they are not implemented here.
-
-Deterministic tests are in
-`tests/test_document_loading_and_chunking.py`. They validate missing-file
-handling and local document splitting without loading the external PDF.
 
 ### Chat model hardening
 
