@@ -535,9 +535,8 @@ retrieval are not implemented yet.
 The reusable embedding component is
 `src/lc_patterns/embeddings/aws_bedrock_embeddings.py`. It creates Amazon Titan
 Text Embeddings V2 with model `amazon.titan-embed-text-v2:0`, 1024 dimensions,
-and normalized embeddings. The component provides a centralized embedding
-configuration for later document indexing and retrieval work without claiming
-that those layers exist today.
+and normalization enabled. This is the current implementation used for later
+embedding work; vector-store persistence is not introduced here.
 
 Deterministic coverage is in
 `tests/test_aws_bedrock_embeddings.py`. The tests mock the Bedrock embeddings
@@ -546,12 +545,28 @@ handling without invoking AWS.
 
 ### Document loading and chunking
 
-`exercises/07-documents-embeddings-semantic-search/01_document_loading_and_chunking.py`
-uses a real Apache HTTP Server documentation PDF as its input document. It
-loads PDF pages into LangChain `Document` objects, splits them with
-`RecursiveCharacterTextSplitter`, preserves document metadata, and adds a
-`start_index` metadata field. Current validation loaded 726 pages and produced
-2,028 chunks.
+Exercise 1 is
+`exercises/07-documents-embeddings-semantic-search/01_document_loading_and_chunking.py`.
+It uses the real Apache HTTP Server documentation PDF as its input document. The
+processing flow is: PDF -> LangChain `Document` objects ->
+`RecursiveCharacterTextSplitter` -> chunked `Document` objects.
+
+Each chunk is a LangChain `Document` and carries metadata in the
+`Document.metadata` dictionary. Loader-generated metadata includes
+`source`, `page`, `page_label`, `total_pages`, and other PDF metadata exposed by
+the PDF loader. Chunking preserves this metadata and adds `start_index`.
+
+Application metadata is then added deterministically: a SHA-256 `chunk_id` based
+on the source and content, and an ingestion-run `chunk_index`. At this stage,
+the resulting chunks are held in an in-memory Python `list[Document]` variable;
+they are not persisted yet. This list is the handoff between chunking and the
+later embedding/vector-store stages.
+
+In a real retrieval pipeline, those chunks and their metadata would be persisted
+with the vector-store records alongside their embeddings. This exercise
+establishes the document and metadata contract that the later embedding and
+retrieval stages consume. Vector-store persistence and semantic search remain
+future work; they are not implemented here.
 
 Deterministic tests are in
 `tests/test_document_loading_and_chunking.py`. They validate missing-file
