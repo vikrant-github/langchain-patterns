@@ -533,10 +533,9 @@ retrieval are not implemented yet.
 ### Document loading and chunking
 
 The reusable chunking implementation now lives in
-`src/lc_patterns/documents/chunking.py`. Exercise 1,
-`exercises/07-documents-embeddings-semantic-search/01_document_loading_chunking_metadata.py`,
-uses the real Apache HTTP Server documentation PDF as its source. `PyPDFLoader`
-produces page-level LangChain `Document` objects, and
+`src/lc_patterns/documents/chunking.py`. The real Apache HTTP Server
+documentation PDF is used as the source document for the chapter exercises.
+`PyPDFLoader` produces page-level LangChain `Document` objects, and
 `RecursiveCharacterTextSplitter` produces chunk-level `Document` objects.
 
 The existing `Document.metadata` dictionary is preserved through chunking.
@@ -545,12 +544,11 @@ other PDF metadata. The splitter adds `start_index`, and the reusable chunking
 logic adds deterministic application metadata: a SHA-256 `chunk_id` and an
 ingestion-run `chunk_index`.
 
-At this stage, the chunked results are held in an in-memory Python
-`list[Document]` variable; they are not persisted yet. This list is the handoff
-between chunking and the later embedding/vector-store stages. In a real
-retrieval pipeline, the chunks and their metadata would be persisted with the
-vector-store records alongside their embeddings. This exercise establishes the
-document and metadata contract consumed by later embedding and retrieval work.
+The chunked results are held in an in-memory Python `list[Document]` variable at
+this stage; they are not persisted yet. This list is the handoff between
+chunking and the later embedding/vector-store stages. The exercises establish
+the document and metadata contract consumed by later embedding and retrieval
+work. Vector-store persistence and semantic search are not implemented yet.
 
 Deterministic tests are in
 `tests/test_document_loading_and_chunking.py`. They validate missing-file
@@ -563,11 +561,14 @@ The reusable Titan embedding component is
 Text Embeddings V2 with model `amazon.titan-embed-text-v2:0`, 1024 dimensions,
 and normalization enabled.
 
-Exercise 2,
-`exercises/07-documents-embeddings-semantic-search/02_document_embeddings.py`,
-embeds the real document chunks using the existing Titan implementation.
-`embed_documents()` produces vectors held in process memory at this stage.
-Vector-store persistence and semantic search are not implemented yet.
+The chapter exercises use the real document chunks produced above, and the
+embedding vectors remain in process memory at this stage. The reusable batching
+helper is in `src/lc_patterns/embeddings/batching.py`, and the batch exercise is
+`exercises/07-documents-embeddings-semantic-search/04_batched_embeddings.py`.
+The similarity-search exercise is
+`exercises/07-documents-embeddings-semantic-search/03_similarity_search.py`.
+These exercises demonstrate in-memory embedding generation and similarity
+lookup without claiming persistent vector-store storage.
 
 Deterministic coverage is in
 `tests/test_aws_bedrock_embeddings.py`. The tests mock the Bedrock embeddings
@@ -588,11 +589,13 @@ The repository keeps tests focused on deterministic, local Python behavior. We d
 
 ### Existing tests
 
-[tests/test_chat.py](tests/test_chat.py) validates the reusable Bedrock model configuration without invoking AWS. It verifies the expected model IDs, the `us-east-1` region, and initialization error handling.
+[tests/test_chat.py](tests/test_chat.py) validates the reusable Bedrock chat model configuration without invoking AWS. It verifies the expected model IDs, the `us-east-1` region, and initialization error handling.
 
 [tests/test_aws_bedrock_embeddings.py](tests/test_aws_bedrock_embeddings.py) validates the Titan embeddings configuration and initialization error handling without invoking AWS.
 
 [tests/test_document_loading_and_chunking.py](tests/test_document_loading_and_chunking.py) validates missing-file handling and local chunking behavior, including metadata preservation.
+
+[tests/test_customer_tool.py](tests/test_customer_tool.py) validates the local customer tool contract and the not-found fallback path without external dependencies.
 
 ### Chapter 3 tests
 
@@ -617,7 +620,7 @@ uv run pytest
 Expected result at the current revision:
 
 ```text
-16 passed
+17 passed
 ```
 
 Run Ruff:
