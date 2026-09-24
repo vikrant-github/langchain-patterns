@@ -12,5 +12,5 @@ def create_titan_text_embeddings() -> BedrockEmbeddings:
                 "normalize": True,
             },
         )
-    except Exception as error:
+    except (RuntimeError, TypeError, ValueError) as error:
         raise RuntimeError("Failed to initialize Bedrock embeddings") from error
