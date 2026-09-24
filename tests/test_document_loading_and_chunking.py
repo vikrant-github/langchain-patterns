@@ -4,32 +4,26 @@ from pathlib import Path
 import pytest
 from langchain_core.documents import Document
 
-CANDIDATE_EXERCISE_PATHS = (
-    Path(__file__).parents[1]
-    / "exercises"
-    / "07-documents-embeddings-semantic-search"
-    / "01_document_loading_and_chunking.py",
-    Path(__file__).parents[1]
-    / "exercises"
-    / "07-documents-embeddings-semantic-search"
-    / "01_document_loading_chunking_metadata.py",
+from lc_patterns.documents.chunking import (
+    add_chunk_metadata,
+    split_documents,
 )
 
-EXERCISE_PATH = next((path for path in CANDIDATE_EXERCISE_PATHS if path.exists()), CANDIDATE_EXERCISE_PATHS[0])
+EXERCISE_PATH = (
+    Path(__file__).parents[1]
+    / "exercises"
+    / "07-documents-embeddings-semantic-search"
+    / "01_document_loading_chunking_metadata.py"
+)
 
-try:
-    spec = spec_from_file_location("document_loading_and_chunking", EXERCISE_PATH)
-    if spec is None or spec.loader is None:
-        raise FileNotFoundError(f"Unable to load exercise module from {EXERCISE_PATH}")
+spec = spec_from_file_location("document_loading_chunking_metadata", EXERCISE_PATH)
+assert spec is not None
+assert spec.loader is not None
 
-    module = module_from_spec(spec)
-    spec.loader.exec_module(module)
-except (FileNotFoundError, ImportError, AttributeError, ModuleNotFoundError, OSError) as exc:
-    pytest.fail(f"Failed to import exercise module from {EXERCISE_PATH}: {exc}")
+module = module_from_spec(spec)
+spec.loader.exec_module(module)
 
 load_document = module.load_document
-split_documents = module.split_documents
-add_chunk_metadata = module.add_chunk_metadata
 
 
 def test_load_document_raises_for_missing_file() -> None:
